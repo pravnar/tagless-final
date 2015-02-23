@@ -61,12 +61,20 @@ run = do
       UN onetwenty = eval [] (App fact (N ans))
   print ans
   print onetwenty
+
+fix f = f (fix f)        
        
-factorial = \n -> if n <= 0 then 1 else n * (factorial (n-1))
-factcps = \k n -> if n <=0 then (k 1) else factcps (\x -> k $ n * x) (n-1)
+factorial = fix $ \rf n -> if n <= 0 then 1 else n * (rf (n-1))
+factorialcps = fix $ \rf n k -> if n <=0 then (k 1) else rf (n-1) (\x -> k $ n * x)
 
 fib = \n -> if n <= 1 then 1 else (if n <= 2 then 1 else fib (n-1) + fib (n-2))
 fibcps = \n k -> if n <= 1 then (k 1)
                  else (if n <= 2 then (k 1)
                        else fibcps (n-1) (\x1 -> fibcps (n-2) (\x2 -> k (x1 + x2))))
 
+will :: Int -> E -> E
+will n exp =
+    case exp of
+      V i -> V i
+      N i -> N i
+      Leq e1 e2 -> Leq (will n e1) (will n e2)
