@@ -63,5 +63,10 @@ run = do
   print onetwenty
        
 factorial = \n -> if n <= 0 then 1 else n * (factorial (n-1))
-
 factcps = \k n -> if n <=0 then (k 1) else factcps (\x -> k $ n * x) (n-1)
+
+fib = \n -> if n <= 1 then 1 else (if n <= 2 then 1 else fib (n-1) + fib (n-2))
+fibcps = \n k -> if n <= 1 then (k 1)
+                 else (if n <= 2 then (k 1)
+                       else fibcps (n-1) (\x1 -> fibcps (n-2) (\x2 -> k (x1 + x2))))
+
