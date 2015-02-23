@@ -65,7 +65,7 @@ run = do
 fix f = f (fix f)        
        
 factorial = fix $ \rf n -> if n <= 0 then 1 else n * (rf (n-1))
-factorialcps = fix $ \rf n k -> if n <=0 then (k 1) else rf (n-1) (\x -> k $ n * x)
+factorialcps = fix $ \rf n k -> if n <= 0 then (k 1) else rf (n-1) (\x -> k $ n * x)
 
 fib = \n -> if n <= 1 then 1 else (if n <= 2 then 1 else fib (n-1) + fib (n-2))
 fibcps = \n k -> if n <= 1 then (k 1)
