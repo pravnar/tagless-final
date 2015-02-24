@@ -90,7 +90,7 @@ cps exp n k =
                              (\v2 -> k (Times v1 v2)))
       If ec et ef -> cps ec n (\vc -> If vc (cps et n k) (cps ef n k))
       Lam e -> k (Lam (Lam (cps e (n+1)
-                            (\v -> (App (V 500) v)))))
+                            (\v -> (App (V n) v)))))
       App e1 e2 -> cps e1 n
                    (\v1 -> cps e2 n
                            (\v2 -> (App (App v1 v2) (Lam (k (V 0))))))
