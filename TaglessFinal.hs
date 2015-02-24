@@ -105,7 +105,21 @@ cps exp k =
 -- (B True)
 
 
--- | cps almost-fact with k = id, where almost-fact is:
+-- | For fact, we should get:
+
+-- Fix (Lam -- k
+--      (Lam -- rec
+--       (Lam -- n
+--        (If (Leq (V 0) (N 1))
+--        (App (V 2) (N 1))
+--        (App
+--         (App (V 1) (Lam (App (V 3) (Times (V 1) (V 0)))))
+--         (Plus (V 0) (N (-1))))))))
+
+
+------ Let's step through what currently happens ------
+-- cps almost-fact with k = id, where almost-fact is:
+
 -- (Lam
 --  (Lam
 --   (If (Leq (V 0) (N 1))
@@ -324,15 +338,3 @@ cps exp k =
 --        (App (V 1) (Lam (App (V 1) (Times (V 0) (V 0)))))
 --        (Plus (V 0) (N (-1))))))))))
 
--- | For fact, we should get:
-
--- Fix (Lam -- k
---      (Lam -- rec
---       (Lam -- n
---        (If (Leq (V 0) (N 1))
---        (App (V 2) (N 1))
---        (App
---         (App (V 1) (Lam (App (V 3) (Times (V 1) (V 0)))))
---         (Plus (V 0) (N (-1))))))))
-
-                     
