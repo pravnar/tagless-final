@@ -71,7 +71,6 @@ fibcps = \n k -> if n <= 1 then (k 1)
                  else (if n <= 2 then (k 1)
                        else fibcps (n-1) (\x1 -> fibcps (n-2) (\x2 -> k (x1 + x2))))
 
-
 -- | An automatic CPS-er, which itself is CPS-ed
 -- The CPS-er creates code that takes the continuation as the *first* argument
 cps :: E -> (E -> E) -> E
