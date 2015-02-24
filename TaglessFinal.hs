@@ -72,9 +72,34 @@ fibcps = \n k -> if n <= 1 then (k 1)
                  else (if n <= 2 then (k 1)
                        else fibcps (n-1) (\x1 -> fibcps (n-2) (\x2 -> k (x1 + x2))))
 
-will :: Int -> E -> E
-will n exp =
+cps :: E -> (E -> E) -> E
+cps exp k =
     case exp of
-      V i -> V i
-      N i -> N i
-      Leq e1 e2 -> Leq (will n e1) (will n e2)
+      V i -> k (V i)
+      N i -> k (N i)
+      B b -> k (B b)
+      Leq e1 e2 -> cps e1
+                   (\v1 -> cps e2
+                           (\v2 -> k (Leq v1 v2)))
+      Plus e1 e2 -> cps e1
+                    (\v1 -> cps e2
+                            (\v2 -> k (Plus v1 v2)))
+      Times e1 e2 -> cps e1
+                     (\v1 -> cps e2
+                             (\v2 -> k (Plus v1 v2)))
+      If ec et ef -> cps ec (\vc -> If vc (cps et k) (cps ef k))
+      Lam e -> k (Lam (Lam (cps e
+                            (\v -> (App (V 1) v)))))
+      App e1 e2 -> cps e1
+                   (\v1 -> cps e2
+                           (\v2 -> (App (App v1 (Lam (k (V 0)))) v2)))
+      Fix e -> undefined
+      
+
+-- | cps (App (Lam (V 0)) (B True)) with k = id
+-- (App (App (Lam (Lam (App (V 1) (V 0)))) (Lam (k (V 0)))) (B True))
+-- (App (Lam (App (Lam (k (V 0))) (V 0))) (B True))
+-- (App (Lam (k (V 0))) (B True))
+-- (k (B True))
+-- (B True)
+                     
