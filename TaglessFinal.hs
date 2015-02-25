@@ -98,6 +98,20 @@ cps exp n m k =
                               (\v2 m2 -> (App (App v1 v2) (Lam (k (V 0) (m2+1))))))
       Fix e -> cps e n m (\v m' -> k (Fix v) m')
 
+incr :: E -> E
+incr exp =
+    case exp of
+      V i -> V (i+1)
+      N i -> N i
+      B b -> B b
+      Leq e1 e2 -> Leq (incr e1) (incr e2)
+      Plus e1 e2 -> Plus (incr e1) (incr e2)
+      Times e1 e2 -> Times (incr e1) (incr e2)
+      If ec et ef -> If (incr ec) (incr et) (incr ef)
+      Lam e -> Lam (incr e)
+      App e1 e2 -> App (incr e1) (incr e2)
+      Fix e -> Fix (incr e)
+
 runcps :: IO ()
 runcps = do
   let t1 = (Lam (Lam (App (V 1) (V 0))))
