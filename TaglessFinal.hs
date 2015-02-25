@@ -1,6 +1,7 @@
 module TaglessFinal where
 
 import Prelude hiding (lookup)
+import Debug.Trace
     
 data E = V Int
        | N Int
@@ -49,8 +50,8 @@ fact = Fix (Lam
                  (N 1)
                  (Times (V 0) (App (V 1) (Plus (V 0) (N (-1))))))))
 
-run :: IO ()
-run = do
+runeval :: IO ()
+runeval = do
   let     -- \x -> (\b -> if b then (3+x) else (3*x))
       e = Lam (Lam (If (V 0) (Plus (N 3) (V 1)) (Times (N 3) (V 1))))
       a = App (App e (N 2)) (B True)
@@ -76,7 +77,8 @@ fibcps = \n k -> if n <= 1 then (k 1)
 cps :: E -> Int -> (E -> E) -> E
 cps exp n k =
     case exp of
-      V i -> k (V (i+n))
+      V i -> let i' = if i < n-1 then 2*i + 1 else i + n
+             in k (V (i'))
       N i -> k (N i)
       B b -> k (B b)
       Leq e1 e2 -> cps e1 n
@@ -95,3 +97,12 @@ cps exp n k =
                    (\v1 -> cps e2 n
                            (\v2 -> (App (App v1 v2) (Lam (k (V 0))))))
       Fix e -> cps e n (\v -> k (Fix v))
+
+runcps :: IO ()
+runcps = do
+  let t1 = (Lam (Lam (App (V 1) (V 0))))
+      t2 = (Plus (If (B True) (N 2) (N 3)) (N 5))
+      t3 = (Plus (App (V 3) (N 10)) (N 50))
+      t4 = (Plus (App (V 3) (N 10)) (V 50))
+  print t4
+  print $ cps t4 0 id

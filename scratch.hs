@@ -7,24 +7,17 @@ t1 = (Lam   -- ^ f
 
 cps t1 0 id should be:
 
-(Lam   -- ^ f
- (Lam  -- ^ n
-  (Lam -- ^ k
-   (App 
-    (Lam ((V 1) (V 0)))
-    (App (V 2) (V 1))))))
+Lam     -- f
+(Lam    -- k
+ (App
+  (V 0)
+  (Lam  -- n
+   (Lam -- k
+    (App
+     (App (V 3) (V 1))
+     (Lam (App (V 1) (V 0))))))))
 
 cps t1 0 id currently is:
-
-(Lam 
- (Lam 
-  (App 
-   (V 500) 
-   (Lam 
-    (Lam 
-     (App 
-      (App (V 3) (V 3)) 
-      (Lam (App (V 500) (V 0)))))))))
 
 Lam 
 (Lam 
@@ -33,8 +26,107 @@ Lam
   (Lam 
    (Lam 
     (App 
-     (App (V 3) (V 3)) 
+     (App (V 3) (V 1)) 
      (Lam (App (V 1) (V 0))))))))
+
+Let's step through the execution:
+
+cps (Lam (Lam (App (V 1) (V 0)))) 0 id
+
+id (Lam (Lam (cps (Lam (App (V 1) (V 0))) 1 (\v -> (App (V 0) v)))))
+
+(Lam (Lam (cps (Lam (App (V 1) (V 0))) 1 (\v -> (App (V 0) v)))))
+
+(Lam 
+ (Lam 
+  ((\v -> (App (V 0) v))
+   (Lam
+    (Lam
+     (cps (App (V 1) (V 0)) 2 (\v -> (App (V 1) v))))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     (cps (App (V 1) (V 0)) 2 (\v -> (App (V 1) v))))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     (cps (V 1) 2
+      (\v1 -> cps (V 0) 2
+              (\v2 -> (App 
+                       (App v1 v2) 
+                       (Lam 
+                        ((\v -> (App (V 1) v))
+                         (V 0))))))))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     (cps (V 1) 2
+      (\v1 -> cps (V 0) 2
+              (\v2 -> (App 
+                       (App v1 v2) 
+                       (Lam 
+                        (App (V 1) (V 0))))))))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     ((\v1 -> cps (V 0) 2
+              (\v2 -> (App 
+                       (App v1 v2) 
+                       (Lam 
+                        (App (V 1) (V 0))))))
+      (V 3)))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     (cps (V 0) 2
+      (\v2 -> (App 
+               (App (V 3) v2) 
+               (Lam 
+                (App (V 1) (V 0)))))))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     ((\v2 -> (App 
+               (App (V 3) v2) 
+               (Lam 
+                (App (V 1) (V 0)))))
+      (V 2)))))))
+
+(Lam 
+ (Lam 
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     (App 
+      (App (V 3) (V 2)) 
+      (Lam (App (V 1) (V 0)))))))))
+
+
 --------------------------------------------------------------------------------
 
 
@@ -53,30 +145,45 @@ cps (App (Lam (V 0)) (B True)) with k = id
 --------------------------------------------------------------------------------
 For fact, we should get:
 
-Fix (Lam -- rec
-     (Lam -- n
-      (Lam -- k
-       (If (Leq (V 1) (N 1))
-       (App (V 0) (N 1))
-       (App
-        (App (V 2) (Plus (V 1) (N (-1))))
-        (Lam (App (V 1) (Times (V 2) (V 0)))))))))
-
-Compromise:
-
 Fix
 (Lam -- rec
- (Lam --k1
+ (Lam -- k1
   (App (V 0)
    (Lam -- n
     (Lam -- k2
      (If (Leq (V 1) (N 1))
-      (App (V 500) (N 1))
+      (App (V 0) (N 1))
       (App
        (App (V 3) (Plus (V 1) (N (-1))))
        (Lam (App (V 1) (Times (V 2) (V 0)))))))))))
 
 What we currently get:
+
+Fix 
+(Lam 
+ (Lam 
+  (App (V 0) 
+   (Lam 
+    (Lam 
+     (If (Leq (V 1) (N 1)) 
+      (App (V 1) (N 1)) 
+      (App 
+       (App (V 3) (Plus (V 1) (N (-1)))) 
+       (Lam (App (V 1) (Times (V 1) (V 0)))))))))))
+
+Fix 
+(Lam 
+ (Lam 
+  (App (V 0) 
+   (Lam 
+    (Lam 
+     (If (Leq (V 1) (N 1)) 
+      (App (V 1) (N 1)) 
+      (App 
+       (App (V 3) (Plus (V 1) (N (-1)))) 
+       (Lam (App (V 1) (Times (V 1) (V 0)))))))))))
+
+What we used to get:
 
 Fix
 (Lam
@@ -89,9 +196,6 @@ Fix
       (App
        (App (V 3) (Plus (V 2) (N (-1))))
        (Lam (App (V 500) (Times (V 2) (V 0)))))))))))
-
-
-What we used to get:
 
 (Fix
  (Lam
