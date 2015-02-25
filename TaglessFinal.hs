@@ -92,7 +92,7 @@ cps exp n m k =
                                 (\v2 m2 -> k (Times v1 v2) m2))
       If ec et ef -> cps ec n m (\vc mc -> If vc (cps et n mc k) (cps ef n mc k))
       Lam e -> k (Lam (Lam (cps e (n+1) m
-                            (\v m' -> (App (V 0) v))))) m
+                            (\v m' -> (App (V m') v))))) m
       App e1 e2 -> cps e1 n m
                    (\v1 m1 -> cps e2 n m1
                               (\v2 m2 -> (App (App v1 v2) (Lam (k (V 0) (m2+1))))))
@@ -104,19 +104,20 @@ runcps = do
       t2 = (Plus (If (B True) (N 2) (N 3)) (N 5))
       t3 = (Plus (App (V 3) (N 10)) (N 50))
       t4 = (Plus (App (V 3) (N 10)) (V 50))
-  print t4
-  print $ cps t4 0 0 const
+      test = t1
+  print test
+  print $ cps test 0 0 const
 
-Fix
-(Lam
- (Lam
-  (App
-   (V 0)
-   (Lam
-    (Lam
-     (If (Leq (V 1) (N 1))
-      (App (V 1) (N 1))
-      (App
-       (App (V 3) (Plus (V 1) (N (-1))))
-       (Lam (App (V 1) (Times (V 1) (V 0)))))))))))
+-- Fix
+-- (Lam
+--  (Lam
+--   (App
+--    (V 0)
+--    (Lam
+--     (Lam
+--      (If (Leq (V 1) (N 1))
+--       (App (V 1) (N 1))
+--       (App
+--        (App (V 3) (Plus (V 1) (N (-1))))
+--        (Lam (App (V 1) (Times (V 1) (V 0)))))))))))
         
