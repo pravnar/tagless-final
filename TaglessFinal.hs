@@ -74,29 +74,29 @@ fibcps = \n k -> if n <= 1 then (k 1)
 
 -- | An automatic CPS-er, which itself is CPS-ed
 -- The CPS-er creates code that takes the continuation as the *first* argument
-cps :: E -> Int -> (E -> E) -> E
-cps exp n k =
+cps :: E -> Int -> Int -> (E -> Int -> E) -> E
+cps exp n m k =
     case exp of
       V i -> let i' = if i < n-1 then 2*i + 1 else i + n
-             in k (V (i'))
-      N i -> k (N i)
-      B b -> k (B b)
-      Leq e1 e2 -> cps e1 n
-                   (\v1 -> cps e2 n
-                           (\v2 -> k (Leq v1 v2)))
-      Plus e1 e2 -> cps e1 n
-                    (\v1 -> cps e2 n
-                            (\v2 -> k (Plus v1 v2)))
-      Times e1 e2 -> cps e1 n
-                     (\v1 -> cps e2 n
-                             (\v2 -> k (Times v1 v2)))
-      If ec et ef -> cps ec n (\vc -> If vc (cps et n k) (cps ef n k))
-      Lam e -> k (Lam (Lam (cps e (n+1)
-                            (\v -> (App (V n) v)))))
-      App e1 e2 -> cps e1 n
-                   (\v1 -> cps e2 n
-                           (\v2 -> (App (App v1 v2) (Lam (k (V 0))))))
-      Fix e -> cps e n (\v -> k (Fix v))
+             in k (V (i'+m)) m
+      N i -> k (N i) m
+      B b -> k (B b) m
+      Leq e1 e2 -> cps e1 n m
+                   (\v1 m1 -> cps e2 n m1
+                              (\v2 m2 -> k (Leq v1 v2) m2))
+      Plus e1 e2 -> cps e1 n m
+                    (\v1 m1 -> cps e2 n m1
+                               (\v2 m2 -> k (Plus v1 v2) m2))
+      Times e1 e2 -> cps e1 n m
+                     (\v1 m1 -> cps e2 n m1
+                                (\v2 m2 -> k (Times v1 v2) m2))
+      If ec et ef -> cps ec n m (\vc mc -> If vc (cps et n mc k) (cps ef n mc k))
+      Lam e -> k (Lam (Lam (cps e (n+1) m
+                            (\v m' -> (App (V n) v))))) m
+      App e1 e2 -> cps e1 n m
+                   (\v1 m1 -> cps e2 n m1
+                              (\v2 m2 -> (App (App v1 v2) (Lam (k (V 0) (m2+1))))))
+      Fix e -> cps e n m (\v m' -> k (Fix v) m')
 
 runcps :: IO ()
 runcps = do
@@ -105,4 +105,18 @@ runcps = do
       t3 = (Plus (App (V 3) (N 10)) (N 50))
       t4 = (Plus (App (V 3) (N 10)) (V 50))
   print t4
-  print $ cps t4 0 id
+  print $ cps t4 0 0 const
+
+Fix
+(Lam
+ (Lam
+  (App
+   (V 0)
+   (Lam
+    (Lam
+     (If (Leq (V 1) (N 1))
+      (App (V 1) (N 1))
+      (App
+       (App (V 3) (Plus (V 1) (N (-1))))
+       (Lam (App (V 1) (Times (V 1) (V 0)))))))))))
+        
