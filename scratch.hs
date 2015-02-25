@@ -29,6 +29,16 @@ Lam
      (App (V 3) (V 1)) 
      (Lam (App (V 1) (V 0))))))))
 
+Lam 
+(Lam 
+ (App 
+  (V 0) 
+  (Lam 
+   (Lam 
+    (App 
+     (App (V 3) (V 1)) 
+     (Lam (App (V 1) (V 0))))))))
+
 Let's step through the execution:
 
 cps (Lam (Lam (App (V 1) (V 0)))) 0 id
@@ -158,6 +168,31 @@ Fix
        (Lam (App (V 1) (Times (V 2) (V 0)))))))))))
 
 What we currently get:
+
+Fix 
+(Lam 
+ (Lam 
+  (App (V 0) 
+   (Lam 
+    (Lam 
+     (If (Leq (V 1) (N 1)) 
+      (App (V 0) (N 1)) 
+      (App 
+       (App (V 3) (Plus (V 1) (N (-1)))) 
+       (Lam (App (V 1) (Times (V 2) (V 0)))))))))))
+
+Fix 
+(Lam 
+ (Lam 
+  (App (V 0) 
+   (Lam 
+    (Lam 
+     (If (Leq (V 1) (N 1)) 
+      (App (V 0) (N 1)) 
+      (App 
+       (App (V 3) (Plus (V 1) (N (-1)))) 
+       (Lam (App (V 1) (Times (V 2) (V 0)))))))))))
+
 
 Fix 
 (Lam 
