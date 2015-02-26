@@ -1,7 +1,6 @@
 module TaglessFinal where
 
 import Prelude hiding (lookup)
-import Debug.Trace
     
 data E = V Int
        | N Int
@@ -13,7 +12,7 @@ data E = V Int
        | Lam E
        | App E E
        | Fix E
-         deriving Show
+         deriving (Show, Eq)
 
 -- | Interpretation into integer, boolean, and function types
 
@@ -110,13 +109,5 @@ incr exp =
       App e1 e2 -> App (incr e1) (incr e2)
       Fix e -> Fix (incr e)
 
-runcps :: IO ()
-runcps = do
-  let t1 = (Lam (Lam (App (V 1) (V 0))))
-      t2 = (Plus (If (B True) (N 2) (N 3)) (N 5))
-      t3 = (Plus (App (V 3) (N 10)) (N 50))
-      t4 = (Plus (App (V 3) (N 10)) (V 50))
-      test = t1
-  print test
-  print $ cps test 0 id
+               
 
