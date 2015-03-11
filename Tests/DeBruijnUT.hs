@@ -1,6 +1,6 @@
-module Tests.DeBruinUT where
+module Tests.DeBruijnUT where
 
-import DeBruinUT
+import DeBruijnUT
        
 cpstests :: [(E,E,String)]
 cpstests = [ (t1, t1cps, "t1")

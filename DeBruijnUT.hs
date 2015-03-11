@@ -1,4 +1,4 @@
-module DeBruinUT where
+module DeBruijnUT where
 
 import Prelude hiding (lookup)
     
