@@ -2,19 +2,23 @@ module Tests where
 
 import TaglessFinal hiding (fact)
        
-cpstests :: [(E,E)]
-cpstests = [ (t1, t1cps)
-           , (t2, t2cps)
-           , (fact, factcps)
-           , (t3, t3cps)
-           , (t4, t4cps)
-           , (fib, fibcps) ]
+cpstests :: [(E,E,String)]
+cpstests = [ (t1, t1cps, "t1")
+           , (t2, t2cps, "t2")
+           , (fact, factcps, "fact")
+           , (t3, t3cps, "t3")
+           , (t4, t4cps, "t4")
+           , (fib, fibcps, "fib")
+           , (t5, t5cps, "t5") ]
 
-testcps :: (E,E) -> IO ()           
-testcps (t,t') = do
-  let result = cps t 0 0 const
-  if result == t' then putStrLn "."
-  else (do putStrLn "Test failure "
+cpsdriver :: E -> E
+cpsdriver e = cps e 0 0 const
+
+testcps :: (E,E,String) -> IO ()
+testcps (t,t',name) = do
+  let result = cpsdriver t
+  if result == t' then putStrLn $ name ++ " OK"
+  else (do putStrLn $ "Test failure: " ++ name
            putStrLn "cps of "
            print $ show t
            putStrLn "should be"
@@ -25,6 +29,10 @@ testcps (t,t') = do
 runcpstests :: IO ()
 runcpstests = mapM_ testcps cpstests >> putStrLn "" >> putStrLn "Done."
 
+
+-- cps (\x y -> x y)
+-- => (\x k -> k (\y k' -> x y (\v -> k' v)))
+-- => (\x k -> k (\y k' -> x y k'))
 t1 = (Lam (Lam (App (V 1) (V 0))))
 t1cps = (Lam
          (Lam
@@ -109,20 +117,12 @@ fibcps = Fix
                    (App (V 4) (Plus (V 2) (N (-2))))
                    (Lam (App (V 2) (Plus (V 1) (V 0))))))))))))))
 
--- Fix
--- (Lam
---  (Lam
---   (App (V 0)
---    (Lam
---     (Lam
---      (If (Leq (V 1) (N 1))
---       (App (V 0) (N 1))
---       (If (Leq (V 1) (N 2))
---        (App (V 0) (N 1))
---        (App
---         (App (V 3) (Plus (V 1) (N (-1))))
---         (Lam
---          (App
---           (App (V 4) (Plus (V 2) (N (-2))))
---           (Lam (App (V 2) (Plus (V 1) (V 1))))))))))))))
-                           
+-- cps ((\x -> x) 10)
+-- => (\x k -> k x) 10 (\x -> x)
+t5 = (App (Lam (V 0)) (N 10))
+t5cps = (App
+         (App
+          (Lam (Lam (App (V 0) (V 1))))
+          (N 10))
+         (Lam (V 0)))
+
