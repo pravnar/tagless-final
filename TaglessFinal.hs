@@ -61,53 +61,47 @@ runeval = do
   print ans
   print onetwenty
 
-fix f = f (fix f)        
-       
-factorial = fix $ \rf n -> if n <= 0 then 1 else n * (rf (n-1))
-factorialcps = fix $ \rf n k -> if n <= 0 then (k 1) else rf (n-1) (\x -> k $ n * x)
-
-fib = \n -> if n <= 1 then 1 else (if n <= 2 then 1 else fib (n-1) + fib (n-2))
-fibcps = \n k -> if n <= 1 then (k 1)
-                 else (if n <= 2 then (k 1)
-                       else fibcps (n-1) (\x1 -> fibcps (n-2) (\x2 -> k (x1 + x2))))
-
 -- | An automatic CPS-er, which itself is CPS-ed
-cps :: E -> Int -> (E -> E) -> E
-cps exp n k =
+cps :: E -> Int -> Int -> (E -> Int -> E) -> E
+cps exp n m k =
     case exp of
       V i -> let i' = if i < n-1 then 2*i + 1 else i + n
-             in k (V i')
-      N i -> k (N i)
-      B b -> k (B b)
-      Leq e1 e2   -> cps e1 n
-                     (\v1 -> cps e2 n
-                           (\v2 -> k (Leq v1 v2)))
-      Plus e1 e2  -> cps e1 n
-                     (\v1 -> cps e2 n
-                             (\v2 -> k (Plus v1 v2)))
-      Times e1 e2 -> cps e1 n
-                     (\v1 -> cps e2 n
-                             (\v2 -> k (Times v1 v2)))
-      If ec et ef -> cps ec n (\vc -> If vc (cps et n k) (cps ef n k))
-      Lam e       -> k (Lam (Lam (cps e (n+1) (\v -> (App (V 0) v)))))
-      App e1 e2   -> cps e1 n
-                     (\v1 -> cps e2 n
-                             (\v2 -> (App (App v1 v2) (Lam (incr (k (V (-1))))))))
-      Fix e       -> cps e n (\v -> k (Fix v))
+             in k (V i') m 
+      N i -> k (N i) m
+      B b -> k (B b) m
+      Leq e1 e2   -> cps e1 n m
+                     (\v1 m1 -> cps e2 n m1
+                                (\v2 m2 -> k (Leq v1 v2) m2))
+      Plus e1 e2  -> cps e1 n m
+                     (\v1 m1 -> cps e2 n m1
+                                (\v2 m2 -> k (Plus v1 v2) m2))
+      Times e1 e2 -> cps e1 n m
+                     (\v1 m1 -> cps e2 n m1
+                                (\v2 m2 -> k (Times v1 v2) m2))
+      If ec et ef -> cps ec n m (\vc mc -> If vc (cps et n mc k) (cps ef n mc k))
+      Lam e       -> k (Lam (Lam (cps e (n+1) m (\v _ -> (App (V 0) v))))) m
+      App e1 e2   -> cps e1 n m
+                     (\v1 m1 -> cps e2 n m1
+                                (\v2 m2 ->
+                                 let m' = m2 + 1
+                                 in (App
+                                     (App v1 v2)
+                                     (Lam (incr m' (k (V (-m')) m'))))))
+      Fix e       -> cps e n m (\v m' -> k (Fix v) m')
 
-incr :: E -> E
-incr exp =
+incr :: Int -> E -> E
+incr m exp =
     case exp of
-      V i -> V (i+1)
+      V i -> V (i+m)
       N i -> N i
       B b -> B b
-      Leq e1 e2 -> Leq (incr e1) (incr e2)
-      Plus e1 e2 -> Plus (incr e1) (incr e2)
-      Times e1 e2 -> Times (incr e1) (incr e2)
-      If ec et ef -> If (incr ec) (incr et) (incr ef)
-      Lam e -> Lam (incr e)
-      App e1 e2 -> App (incr e1) (incr e2)
-      Fix e -> Fix (incr e)
+      Leq e1 e2 -> Leq (incr m e1) (incr m e2)
+      Plus e1 e2 -> Plus (incr m e1) (incr m e2)
+      Times e1 e2 -> Times (incr m e1) (incr m e2)
+      If ec et ef -> If (incr m ec) (incr m et) (incr m ef)
+      Lam e -> Lam e
+      App e1 e2 -> App (incr m e1) (incr m e2)
+      Fix e -> Fix (incr m e)
 
                
 
