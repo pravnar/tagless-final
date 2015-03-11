@@ -1,4 +1,4 @@
-module TaglessFinal where
+module DeBruinUT where
 
 import Prelude hiding (lookup)
     
@@ -41,25 +41,6 @@ eval env exp =
         Lam e       -> UF (\u -> eval (u:env) e)
         App e1 e2   -> let UF f = eval env e1 in f (eval env e2)
         Fix e       -> let UF f = eval env e in f (eval env (Fix e))
-
-fact :: E
-fact = Fix (Lam
-            (Lam
-             (If (Leq (V 0) (N 1))
-                 (N 1)
-                 (Times (V 0) (App (V 1) (Plus (V 0) (N (-1))))))))
-
-runeval :: IO ()
-runeval = do
-  let     -- \x -> (\b -> if b then (3+x) else (3*x))
-      e = Lam (Lam (If (V 0) (Plus (N 3) (V 1)) (Times (N 3) (V 1))))
-      a = App (App e (N 2)) (B True)
-  print e
-  print a
-  let UN ans = eval [] a -- ^ ans = 5
-      UN onetwenty = eval [] (App fact (N ans))
-  print ans
-  print onetwenty
 
 -- | An automatic CPS-er, which itself is CPS-ed
 cps :: E -> Int -> Int -> (E -> Int -> E) -> E

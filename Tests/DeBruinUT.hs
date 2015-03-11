@@ -1,6 +1,6 @@
-module Tests where
+module Tests.DeBruinUT where
 
-import TaglessFinal hiding (fact)
+import DeBruinUT
        
 cpstests :: [(E,E,String)]
 cpstests = [ (t1, t1cps, "t1")
@@ -29,6 +29,17 @@ testcps (t,t',name) = do
 runcpstests :: IO ()
 runcpstests = mapM_ testcps cpstests >> putStrLn "" >> putStrLn "Done."
 
+runeval :: IO ()
+runeval = do
+  let     -- \x -> (\b -> if b then (3+x) else (3*x))
+      e = Lam (Lam (If (V 0) (Plus (N 3) (V 1)) (Times (N 3) (V 1))))
+      a = App (App e (N 2)) (B True)
+  print e
+  print a
+  let UN ans = eval [] a -- ^ ans = 5
+      UN onetwenty = eval [] (App fact (N ans))
+  print ans
+  print onetwenty
 
 -- cps (\x y -> x y)
 -- => (\x k -> k (\y k' -> x y (\v -> k' v)))
