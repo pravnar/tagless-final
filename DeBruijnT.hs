@@ -4,19 +4,17 @@ module DeBruijnT where
 
 data Var a = Z | S (Var a)
 
-data E vars a where
-    V     :: Var a        -> E a a
-    N     :: Int          -> E () Int
-    B     :: Bool         -> E () Bool
-    Leq   :: E v1 Int     -> E v2 Int -> E (v1,v2) Bool
-    Plus  :: E v1 Int     -> E v2 Int -> E (v1,v2) Int
-    Times :: E v1 Int     -> E v2 Int -> E (v1,v2) Int
-    If    :: E v Bool     -> E v' a   -> E v' a
-    Lam   :: (E va a -> E vb b) -> E (a,vb) (a -> b)
-    App   :: E (a,vb) (a -> b)  -> E va a -> E vb b
-    Fix   :: E vars a           -> E vars a
-
-             
+data E a where
+    V     :: Var a        -> E a
+    N     :: Int          -> E Int
+    B     :: Bool         -> E Bool
+    Leq   :: E Int        -> E Int -> E Bool
+    Plus  :: E Int        -> E Int -> E Int
+    Times :: E Int        -> E Int -> E Int
+    If    :: E Bool       -> E a   -> E a
+    Lam   :: (E a -> E b) -> E (a -> b)
+    App   :: E (a -> b)   -> E a -> E b
+    Fix   :: E a          -> E a
              
 -- eval :: Env -> E a -> a
  
